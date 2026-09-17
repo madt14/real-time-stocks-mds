@@ -1,0 +1,8 @@
+requests
+curl_cffi
+kafka-python==2.3.1
+boto3
+dbt-core
+dbt-snowflake
+snowflake-connector-python
+python-dotenv

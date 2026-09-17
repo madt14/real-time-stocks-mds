@@ -1,0 +1,23 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+airflow/logs/*
+!airflow/logs/.gitkeep
+airflow/keys/
+
+.vscode/
+.idea/
+
+target/
+dbt_packages/
+logs/
+dbt_stocks/models/gold/gold_session_range.sql
+dbt_dag.png
+dbt_dag_direct.png
+dbt_stocks/.user.yml
+Real TIme Stocks.twb
+generate_dag.py
+~Real TIme Stocks__19452.twbr

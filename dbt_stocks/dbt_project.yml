@@ -1,0 +1,14 @@
+name: "dbt_stocks"
+version: "1.0.0"
+config-version: 2
+profile: "dbt_stocks"
+model-paths: ["models"]
+
+models:
+  dbt_stocks:
+    bronze:
+      +materialized: view
+    silver:
+      +materialized: view
+    gold:
+      +materialized: view
