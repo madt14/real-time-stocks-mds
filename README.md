@@ -117,32 +117,35 @@ This is a condensed quick-start. A complete, step-by-step build guide — includ
 
 Configuration is provided via a `.env` file in the project root, which is not committed to version control. Required variables:
 
-| Variable                                                                                                                      | Purpose                                            |
-| ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| `FINNHUB_API_KEY`                                                                                                             | API key for the quote data source                  |
-| `RUSTFS_ACCESS_KEY` / `RUSTFS_SECRET_KEY`                                                                                     | Credentials for the object storage service         |
-| `AIRFLOW_ADMIN_USER` / `AIRFLOW_ADMIN_PASSWORD`                                                                               | Airflow web UI login                               |
-| `AIRFLOW_UID`                                                                                                                 | Container user ID, for file-permission consistency |
-| `SNOWFLAKE_ACCOUNT` / `SNOWFLAKE_USER` / `SNOWFLAKE_ROLE` / `SNOWFLAKE_WAREHOUSE` / `SNOWFLAKE_DATABASE` / `SNOWFLAKE_SCHEMA` | Snowflake connection details                       |
-| `SNOWFLAKE_PASSWORD` **or** `SNOWFLAKE_PRIVATE_KEY_PATH`                                                                      | Snowflake authentication — see below               |
+| Variable                                                                                                                      | Purpose                                                                                                            |
+| ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `FINNHUB_API_KEY`                                                                                                             | API key for the quote data source                                                                                  |
+| `RUSTFS_ACCESS_KEY` / `RUSTFS_SECRET_KEY`                                                                                     | Credentials for the object storage service                                                                         |
+| `AIRFLOW_ADMIN_USER` / `AIRFLOW_ADMIN_PASSWORD`                                                                               | Airflow web UI login                                                                                               |
+| `AIRFLOW_UID`                                                                                                                 | Container user ID, for file-permission consistency                                                                 |
+| `SNOWFLAKE_ACCOUNT` / `SNOWFLAKE_USER` / `SNOWFLAKE_ROLE` / `SNOWFLAKE_WAREHOUSE` / `SNOWFLAKE_DATABASE` / `SNOWFLAKE_SCHEMA` | Snowflake connection details. `SNOWFLAKE_SCHEMA` should hold a single name, not a combined `database.schema` value |
+| `SNOWFLAKE_PASSWORD` **or** `SNOWFLAKE_PRIVATE_KEY_PATH`                                                                      | Snowflake authentication — see below                                                                               |
 
 Snowflake accounts that authenticate via SSO/OAuth rather than a password use RSA key-pair authentication instead, since an unattended scheduled job cannot complete an interactive browser login. See the full build guide for setup instructions.
+
+When key-pair authentication is used, `SNOWFLAKE_PRIVATE_KEY_PATH` in `.env` is the path to the key as seen from inside the Airflow containers. dbt runs directly on the host machine, where that path does not exist. In any terminal that loads `.env` automatically (ex. VS Code terminal), set `SNOWFLAKE_PRIVATE_KEY_PATH` to the key's full local path for that session before running dbt. Though leave `.env` itself unchanged, because Airflow still depends on the container path.
 
 ## Data Model
 
 Data moves through three progressively refined layers, following the medallion architecture pattern:
 
-| Layer  | Model                 | Purpose                                                                                |
-| ------ | --------------------- | -------------------------------------------------------------------------------------- |
-| Bronze | `bronze_stock_quotes` | Raw JSON parsed into typed columns                                                     |
-| Silver | `silver_stock_quotes` | Cleaned, rounded, deduplicated quotes                                                  |
-| Gold   | `gold_kpi`            | Latest price and change per symbol                                                     |
-| Gold   | `gold_candlestick`    | Daily open/high/low/close per symbol                                                   |
-| Gold   | `gold_treechart`      | Average price and volatility per symbol                                                |
-| Gold   | `gold_rank`           | Symbol ranking by percent change over time, for leadership/momentum analysis           |
-| Gold   | `gold_session_range`  | Where the current price sits within the session's high/low range                       |
-| Gold   | `gold_correlation`    | Pairwise correlation of price movement across all symbols                              |
-| Gold   | `gold_pair_scatter`   | Paired time-series values for a specific symbol pair, supporting scatter-plot analysis |
+| Layer  | Model                   | Purpose                                                                                                                       |
+| ------ | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Bronze | `bronze_stock_quotes`   | Raw JSON parsed into typed columns                                                                                            |
+| Silver | `silver_stock_quotes`   | Cleaned, rounded to 2 decimals, deduplicated quotes, rows without a price are removed                                         |
+| Silver | `silver_minute_changes` | Average percent change per symbol per minute; the shared building block for the ranking, correlation, and pair-scatter models |
+| Gold   | `gold_kpi`              | Latest price and change per symbol                                                                                            |
+| Gold   | `gold_candlestick`      | Daily open/high/low/close per symbol                                                                                          |
+| Gold   | `gold_treechart`        | Average price and volatility per symbol                                                                                       |
+| Gold   | `gold_rank`             | Symbol ranking by percent change over time, for leadership/momentum analysis                                                  |
+| Gold   | `gold_session_range`    | Where the current price sits within the session's high/low range                                                              |
+| Gold   | `gold_correlation`      | Pairwise correlation of price movement across all symbols                                                                     |
+| Gold   | `gold_pair_scatter`     | Paired time-series values for a specific symbol pair, supporting scatter-plot analysis                                        |
 
 ## Dashboards
 
