@@ -13,6 +13,6 @@ dbt_stocks:
 
       role: "{{ env_var('SNOWFLAKE_ROLE', 'ACCOUNTADMIN') }}"
       warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'COMPUTE_WH') }}"
-      database: "{{ env_var('SNOWFLAKE_DATABASE', 'STOCKS_MDS') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'MTUCKER_FINSTOCKS_MDS') }}"
       schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'COMMON') }}"
       threads: 4
